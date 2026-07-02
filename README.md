@@ -2,7 +2,7 @@
 
 An interactive, client-side web application designed to automatically format page numbers and department footers on PDF drafts according to the official guidelines of **Politeknik Negeri Jakarta (PNJ)**.
 
-🚀 **Live Deployment:** [https://tamatimtam.github.io/skripsi-formatter/](https://tamatimtam.github.io/skripsi-formatter/)
+🚀 **Live Deployment:** [https://tamatimtam.github.io/pnj-skripsi-page-formatter/](https://tamatimtam.github.io/pnj-skripsi-page-formatter/)
 
 ---
 
@@ -39,8 +39,8 @@ Since this tool is entirely serverless and client-side, you can run it on your l
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Tamatimtam/skripsi-formatter.git
-   cd skripsi-formatter
+   git clone https://github.com/Tamatimtam/pnj-skripsi-page-formatter.git
+   cd pnj-skripsi-page-formatter
    ```
 2. **Serve the project:**
    Simply double-click `index.html` to open it in your browser, or run a simple local server:
