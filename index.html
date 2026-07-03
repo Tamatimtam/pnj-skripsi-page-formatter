@@ -295,15 +295,15 @@
             let watermarkImage = null;
             if (watermarkEnabled) {
                 try {
-                    const watermarkBytesResponse = await fetch('watermark.jpg');
+                    const watermarkBytesResponse = await fetch('watermark.png');
                     if (!watermarkBytesResponse.ok) {
                         throw new Error(`HTTP Error: ${watermarkBytesResponse.status} ${watermarkBytesResponse.statusText}`);
                     }
                     const watermarkBytes = await watermarkBytesResponse.arrayBuffer();
-                    watermarkImage = await destPdfDoc.embedJpg(watermarkBytes);
+                    watermarkImage = await destPdfDoc.embedPng(watermarkBytes);
                 } catch (watermarkError) {
                     console.error("Failed to load watermark image:", watermarkError);
-                    alert(`GAGAL: File 'watermark.jpg' tidak bisa dimuat!\n\nDetail Error: ${watermarkError.message}`);
+                    alert(`GAGAL: File 'watermark.png' tidak bisa dimuat!\n\nDetail Error: ${watermarkError.message}`);
                     btnText.innerText = "Apply & Update Preview";
                     spinner.classList.add('hidden');
                     return;
@@ -349,7 +349,15 @@
                 const newPage = destPdfDoc.addPage([width, height]);
                 const page = newPage;
                 
-                // --- 0. DRAW WATERMARK ---
+                // --- 0.5 DRAW ORIGINAL PAGE CONTENT ---
+                page.drawPage(embeddedPages[i], {
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: height
+                });
+                
+                // --- 0.6 DRAW WATERMARK ON TOP OF CONTENT ---
                 if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
                     const imgWidth = width * wmScale;
                     const imgHeight = imgWidth * (1024 / 723);
@@ -365,14 +373,6 @@
                         rotate: PDFLib.degrees(wmRotation)
                     });
                 }
-                
-                // --- 0.5 DRAW ORIGINAL PAGE CONTENT ---
-                page.drawPage(embeddedPages[i], {
-                    x: 0,
-                    y: 0,
-                    width: width,
-                    height: height
-                });
                 
                 // --- 1. DRAW PAGE NUMBERS ---
                 let textToDraw = "";
