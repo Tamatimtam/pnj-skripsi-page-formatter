@@ -259,11 +259,11 @@
         try {
             const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
             
-            // --- FONTKIT REGISTRATION ---
-            // Baris ini yang akan memperbaiki error kamu!
-            pdfDoc.registerFontkit(window.fontkit);
+            // Create destination document for layering
+            const destPdfDoc = await PDFLib.PDFDocument.create();
+            destPdfDoc.registerFontkit(window.fontkit);
             
-            const font = await pdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+            const font = await destPdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             const fontSize = 12;
             
             // --- STRICT TTF FILE LOADING (NO FALLBACK) ---
@@ -276,7 +276,7 @@
                 }
                 
                 const fontBytes = await fontBytesResponse.arrayBuffer();
-                fontBold = await pdfDoc.embedFont(fontBytes);
+                fontBold = await destPdfDoc.embedFont(fontBytes);
                 
             } catch (fontError) {
                 console.error("CRITICAL ERROR: Failed to load TTF file.", fontError);
@@ -288,6 +288,7 @@
             // ---------------------------------------------
 
             const pages = pdfDoc.getPages();
+            const embeddedPages = await destPdfDoc.embedPages(pages);
 
             // Watermark Embedding & Setup
             const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
@@ -299,7 +300,7 @@
                         throw new Error(`HTTP Error: ${watermarkBytesResponse.status} ${watermarkBytesResponse.statusText}`);
                     }
                     const watermarkBytes = await watermarkBytesResponse.arrayBuffer();
-                    watermarkImage = await pdfDoc.embedJpg(watermarkBytes);
+                    watermarkImage = await destPdfDoc.embedJpg(watermarkBytes);
                 } catch (watermarkError) {
                     console.error("Failed to load watermark image:", watermarkError);
                     alert(`GAGAL: File 'watermark.jpg' tidak bisa dimuat!\n\nDetail Error: ${watermarkError.message}`);
@@ -341,8 +342,12 @@
 
             for (let i = 0; i < pages.length; i++) {
                 const physicalPageNum = i + 1;
-                const page = pages[i];
-                const { width, height } = page.getSize();
+                const srcPage = pages[i];
+                const { width, height } = srcPage.getSize();
+                
+                // Create a blank page in destPdfDoc
+                const newPage = destPdfDoc.addPage([width, height]);
+                const page = newPage;
                 
                 // --- 0. DRAW WATERMARK ---
                 if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
@@ -360,6 +365,14 @@
                         rotate: PDFLib.degrees(wmRotation)
                     });
                 }
+                
+                // --- 0.5 DRAW ORIGINAL PAGE CONTENT ---
+                page.drawPage(embeddedPages[i], {
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: height
+                });
                 
                 // --- 1. DRAW PAGE NUMBERS ---
                 let textToDraw = "";
@@ -414,7 +427,7 @@
                 }
             }
 
-            modifiedPdfBytes = await pdfDoc.save();
+            modifiedPdfBytes = await destPdfDoc.save();
             const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" });
             const url = URL.createObjectURL(blob);
             
