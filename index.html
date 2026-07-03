@@ -263,6 +263,14 @@
             const destPdfDoc = await PDFLib.PDFDocument.create();
             destPdfDoc.registerFontkit(window.fontkit);
             
+            // Create ExtGState dictionary for Multiply blend mode
+            const gsDict = destPdfDoc.context.obj({
+                Type: 'ExtGState',
+                BM: PDFLib.PDFName.of('Multiply'),
+            });
+            const gsRef = destPdfDoc.context.register(gsDict);
+            const extGStateName = PDFLib.PDFName.of('GS1');
+            
             const font = await destPdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             const fontSize = 12;
             
@@ -359,11 +367,27 @@
                 
                 // --- 0.6 DRAW WATERMARK ON TOP OF CONTENT ---
                 if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
+                    // Register ExtGState in this page's resources
+                    if (!page.node.Resources()) {
+                        page.node.set(PDFLib.PDFName.of('Resources'), destPdfDoc.context.obj({}));
+                    }
+                    const resources = page.node.Resources();
+                    let extGStates = resources.get(PDFLib.PDFName.of('ExtGState'));
+                    if (!extGStates) {
+                        extGStates = destPdfDoc.context.obj({});
+                        resources.set(PDFLib.PDFName.of('ExtGState'), extGStates);
+                    }
+                    extGStates.set(extGStateName, gsRef);
+
                     const imgWidth = width * wmScale;
                     const imgHeight = imgWidth * (1024 / 723);
                     const imgX = (width - imgWidth) / 2 + wmOffsetX;
                     const imgY = (height - imgHeight) / 2 + wmOffsetY;
                     
+                    // Save state and set blend mode
+                    page.pushOperators(PDFLib.PDFOperator.of('q'));
+                    page.pushOperators(PDFLib.PDFOperator.of('gs', [extGStateName]));
+
                     page.drawImage(watermarkImage, {
                         x: imgX,
                         y: imgY,
@@ -372,6 +396,9 @@
                         opacity: wmOpacity,
                         rotate: PDFLib.degrees(wmRotation)
                     });
+
+                    // Restore state
+                    page.pushOperators(PDFLib.PDFOperator.of('Q'));
                 }
                 
                 // --- 1. DRAW PAGE NUMBERS ---
