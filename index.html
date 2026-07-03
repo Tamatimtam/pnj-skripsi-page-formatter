@@ -22,78 +22,176 @@
     
     <div class="w-full md:w-1/3 border-r border-gray-200 p-6 overflow-y-auto max-h-[85vh]">
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Skripsi Formatter</h1>
-        <p class="text-sm text-gray-500 mb-6">Format page numbers and auto-text footers according to PNJ Skripsi guidelines.</p>
+        <p class="text-sm text-gray-500 mb-6">Format page numbers, auto-text footers, and page watermarks according to PNJ guidelines.</p>
+
+        <!-- Tabs Navigation -->
+        <div class="flex border-b border-gray-200 mb-6 text-sm">
+            <button id="tabFormatting" class="w-1/2 py-2 text-center font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition">
+                Page & Footer
+            </button>
+            <button id="tabWatermark" class="w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition">
+                Watermark
+            </button>
+        </div>
 
         <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2">1. Upload PDF Draft</label>
             <input type="file" id="pdfInput" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
         </div>
 
-        <div class="mb-6 bg-blue-50 p-4 rounded-lg">
-            <h2 class="text-sm font-semibold text-gray-800 mb-3">2. Page Configuration (Physical Pages)</h2>
-            
-            <div class="space-y-4 text-sm">
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">Front Matter Start Page (Roman i, ii..)</label>
-                    <input type="number" id="frontStart" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 2" value="2">
-                </div>
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">Hide Roman Number on Pages</label>
-                    <input type="text" id="frontHidden" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 2" value="2">
-                </div>
+        <!-- Formatting Tab Content -->
+        <div id="containerFormatting" class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">2. Page Configuration (Physical Pages)</h2>
                 
-                <hr class="border-blue-200">
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Front Matter Start Page (Roman i, ii..)</label>
+                        <input type="number" id="frontStart" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 2" value="2">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Hide Roman Number on Pages</label>
+                        <input type="text" id="frontHidden" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 2" value="2">
+                    </div>
+                    
+                    <hr class="border-blue-200">
 
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">Main Body Start Page (Arabic 1, 2..)</label>
-                    <input type="number" id="mainStart" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 10" value="10">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Main Body Start Page (Arabic 1, 2..)</label>
+                        <input type="number" id="mainStart" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 10" value="10">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Chapter Opening Pages (BAB)</label>
+                        <p class="text-xs text-gray-500 mb-1">Numbers go to bottom-center. Footer auto-text is hidden.</p>
+                        <input type="text" id="chapterPages" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 10, 25, 42" value="10">
+                    </div>
                 </div>
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">Chapter Opening Pages (BAB)</label>
-                    <p class="text-xs text-gray-500 mb-1">Numbers go to bottom-center. Footer auto-text is hidden.</p>
-                    <input type="text" id="chapterPages" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 10, 25, 42" value="10">
+            </div>
+
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">3. Footer Auto-Text Configuration</h2>
+                <p class="text-xs text-gray-500 mb-3">"Jurusan Teknik Informatika dan Komputer – Politeknik Negeri Jakarta"</p>
+                
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Start Page (Abstrak)</label>
+                        <input type="number" id="footerStart" class="w-full p-2 border border-gray-300 rounded focus:ring-green-500 focus:border-green-500" placeholder="e.g., 6" value="0">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">End Page (Daftar Referensi)</label>
+                        <p class="text-xs text-gray-500 mb-1">Leave as 0 to apply until the very last page.</p>
+                        <input type="number" id="footerEnd" class="w-full p-2 border border-gray-300 rounded focus:ring-green-500 focus:border-green-500" placeholder="e.g., 60" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">4. Pixel-level Adjustments</h2>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="block text-gray-600 text-xs">Bottom Center X</label>
+                        <input type="number" id="offsetXBottom" value="0" class="w-full p-1 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 text-xs">Bottom Margin Y</label>
+                        <input type="number" id="offsetYBottom" value="0" class="w-full p-1 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 text-xs">Top Corners Y</label>
+                        <input type="number" id="offsetYTop" value="0" class="w-full p-1 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 text-xs">Side Margins X</label>
+                        <input type="number" id="offsetXSide" value="0" class="w-full p-1 border rounded">
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="mb-6 bg-green-50 p-4 rounded-lg">
-            <h2 class="text-sm font-semibold text-gray-800 mb-3">3. Footer Auto-Text Configuration</h2>
-            <p class="text-xs text-gray-500 mb-3">"Jurusan Teknik Informatika dan Komputer – Politeknik Negeri Jakarta"</p>
-            
-            <div class="space-y-4 text-sm">
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">Start Page (Abstrak)</label>
-                    <input type="number" id="footerStart" class="w-full p-2 border border-gray-300 rounded focus:ring-green-500 focus:border-green-500" placeholder="e.g., 6" value="0">
+        <!-- Watermarking Tab Content -->
+        <div id="containerWatermark" class="hidden space-y-6">
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <h2 class="text-sm font-semibold text-purple-950 mb-3">2. Watermark Configuration</h2>
+                
+                <div class="space-y-4 text-sm">
+                    <div class="flex items-center justify-between">
+                        <label class="font-medium text-gray-700">Enable Watermark Overlay</label>
+                        <div class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="watermarkEnabled" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Target Pages</label>
+                        <p class="text-xs text-gray-500 mb-1.5">Apply to e.g., "1, 3, 5-7" or "all".</p>
+                        <input type="text" id="watermarkPages" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500" placeholder="e.g., all" value="all">
+                    </div>
                 </div>
-                <div>
-                    <label class="block font-medium text-gray-700 mb-1">End Page (Daftar Referensi)</label>
-                    <p class="text-xs text-gray-500 mb-1">Leave as 0 to apply until the very last page.</p>
-                    <input type="number" id="footerEnd" class="w-full p-2 border border-gray-300 rounded focus:ring-green-500 focus:border-green-500" placeholder="e.g., 60" value="0">
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">3. Watermark Adjustments</h2>
+                <div class="space-y-5 text-sm">
+                    <!-- Opacity -->
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+                            <label class="font-medium">Opacity</label>
+                            <span id="valOpacity" class="font-semibold text-purple-700">0.30</span>
+                        </div>
+                        <input type="range" id="watermarkOpacity" min="0" max="1" step="0.05" value="0.30" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+                    
+                    <!-- Scale -->
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+                            <label class="font-medium">Scale</label>
+                            <span id="valScale" class="font-semibold text-purple-700">100%</span>
+                        </div>
+                        <input type="range" id="watermarkScale" min="10" max="200" step="5" value="100" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+                    
+                    <!-- X Offset -->
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+                            <label class="font-medium">X Offset (Horizontal)</label>
+                            <span id="valOffsetX" class="font-semibold text-purple-700">0 pt</span>
+                        </div>
+                        <input type="range" id="watermarkOffsetX" min="-300" max="300" step="5" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+                    
+                    <!-- Y Offset -->
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+                            <label class="font-medium">Y Offset (Vertical)</label>
+                            <span id="valOffsetY" class="font-semibold text-purple-700">0 pt</span>
+                        </div>
+                        <input type="range" id="watermarkOffsetY" min="-400" max="400" step="5" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+                    
+                    <!-- Rotation -->
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+                            <label class="font-medium">Rotation</label>
+                            <span id="valRotation" class="font-semibold text-purple-700">0°</span>
+                        </div>
+                        <input type="range" id="watermarkRotation" min="-180" max="180" step="5" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                    </div>
+
+                    <!-- Presets -->
+                    <div class="pt-2">
+                        <label class="block text-xs font-semibold text-gray-600 mb-2">Position Presets</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button type="button" id="presetCenter" class="py-2 px-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 active:bg-gray-100 font-medium text-gray-700 transition">Center</button>
+                            <button type="button" id="presetFullPage" class="py-2 px-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 active:bg-gray-100 font-medium text-gray-700 transition">Full Page</button>
+                            <button type="button" id="presetBottomRight" class="py-2 px-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 active:bg-gray-100 font-medium text-gray-700 transition">Bottom Right</button>
+                            <button type="button" id="presetTopLeft" class="py-2 px-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 active:bg-gray-100 font-medium text-gray-700 transition">Top Left</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-            <h2 class="text-sm font-semibold text-gray-800 mb-3">4. Pixel-level Adjustments</h2>
-            <div class="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                    <label class="block text-gray-600 text-xs">Bottom Center X</label>
-                    <input type="number" id="offsetXBottom" value="0" class="w-full p-1 border rounded">
-                </div>
-                <div>
-                    <label class="block text-gray-600 text-xs">Bottom Margin Y</label>
-                    <input type="number" id="offsetYBottom" value="0" class="w-full p-1 border rounded">
-                </div>
-                <div>
-                    <label class="block text-gray-600 text-xs">Top Corners Y</label>
-                    <input type="number" id="offsetYTop" value="0" class="w-full p-1 border rounded">
-                </div>
-                <div>
-                    <label class="block text-gray-600 text-xs">Side Margins X</label>
-                    <input type="number" id="offsetXSide" value="0" class="w-full p-1 border rounded">
-                </div>
-            </div>
-        </div>
 
         <div class="flex flex-col space-y-3">
             <button id="btnGenerate" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition flex items-center justify-center">
@@ -191,6 +289,35 @@
 
             const pages = pdfDoc.getPages();
 
+            // Watermark Embedding & Setup
+            const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
+            let watermarkImage = null;
+            if (watermarkEnabled) {
+                try {
+                    const watermarkBytesResponse = await fetch('watermark.jpg');
+                    if (!watermarkBytesResponse.ok) {
+                        throw new Error(`HTTP Error: ${watermarkBytesResponse.status} ${watermarkBytesResponse.statusText}`);
+                    }
+                    const watermarkBytes = await watermarkBytesResponse.arrayBuffer();
+                    watermarkImage = await pdfDoc.embedJpg(watermarkBytes);
+                } catch (watermarkError) {
+                    console.error("Failed to load watermark image:", watermarkError);
+                    alert(`GAGAL: File 'watermark.jpg' tidak bisa dimuat!\n\nDetail Error: ${watermarkError.message}`);
+                    btnText.innerText = "Apply & Update Preview";
+                    spinner.classList.add('hidden');
+                    return;
+                }
+            }
+
+            // Watermark settings
+            const wmPagesStr = document.getElementById('watermarkPages').value;
+            const wmOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || 0.3;
+            const wmScale = parseFloat(document.getElementById('watermarkScale').value) / 100 || 1.0;
+            const wmOffsetX = parseFloat(document.getElementById('watermarkOffsetX').value) || 0;
+            const wmOffsetY = parseFloat(document.getElementById('watermarkOffsetY').value) || 0;
+            const wmRotation = parseFloat(document.getElementById('watermarkRotation').value) || 0;
+            const wmTargetPages = watermarkImage ? parsePageRange(wmPagesStr, pages.length) : [];
+
             // Inputs
             const frontStart = parseInt(document.getElementById('frontStart').value) || 0;
             const frontHidden = parseArrayStr(document.getElementById('frontHidden').value);
@@ -216,6 +343,23 @@
                 const physicalPageNum = i + 1;
                 const page = pages[i];
                 const { width, height } = page.getSize();
+                
+                // --- 0. DRAW WATERMARK ---
+                if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
+                    const imgWidth = width * wmScale;
+                    const imgHeight = imgWidth * (1024 / 723);
+                    const imgX = (width - imgWidth) / 2 + wmOffsetX;
+                    const imgY = (height - imgHeight) / 2 + wmOffsetY;
+                    
+                    page.drawImage(watermarkImage, {
+                        x: imgX,
+                        y: imgY,
+                        width: imgWidth,
+                        height: imgHeight,
+                        opacity: wmOpacity,
+                        rotate: PDFLib.degrees(wmRotation)
+                    });
+                }
                 
                 // --- 1. DRAW PAGE NUMBERS ---
                 let textToDraw = "";
@@ -302,6 +446,126 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     });
+
+    // --- TABS NAVIGATION LOGIC ---
+    const tabFormatting = document.getElementById('tabFormatting');
+    const tabWatermark = document.getElementById('tabWatermark');
+    const containerFormatting = document.getElementById('containerFormatting');
+    const containerWatermark = document.getElementById('containerWatermark');
+
+    tabFormatting.addEventListener('click', () => {
+        tabFormatting.className = "w-1/2 py-2 text-center font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition";
+        tabWatermark.className = "w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        containerFormatting.classList.remove('hidden');
+        containerWatermark.classList.add('hidden');
+    });
+
+    tabWatermark.addEventListener('click', () => {
+        tabFormatting.className = "w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabWatermark.className = "w-1/2 py-2 text-center font-bold border-b-2 border-purple-600 text-purple-600 focus:outline-none transition";
+        containerFormatting.classList.add('hidden');
+        containerWatermark.classList.remove('hidden');
+    });
+
+    // --- WATERMARK RANGE SLIDERS LOGIC ---
+    const opacityInput = document.getElementById('watermarkOpacity');
+    const valOpacity = document.getElementById('valOpacity');
+    opacityInput.addEventListener('input', () => valOpacity.innerText = parseFloat(opacityInput.value).toFixed(2));
+
+    const scaleInput = document.getElementById('watermarkScale');
+    const valScale = document.getElementById('valScale');
+    scaleInput.addEventListener('input', () => valScale.innerText = scaleInput.value + '%');
+
+    const offsetXInput = document.getElementById('watermarkOffsetX');
+    const valOffsetX = document.getElementById('valOffsetX');
+    offsetXInput.addEventListener('input', () => valOffsetX.innerText = offsetXInput.value + ' pt');
+
+    const offsetYInput = document.getElementById('watermarkOffsetY');
+    const valOffsetY = document.getElementById('valOffsetY');
+    offsetYInput.addEventListener('input', () => valOffsetY.innerText = offsetYInput.value + ' pt');
+
+    const rotationInput = document.getElementById('watermarkRotation');
+    const valRotation = document.getElementById('valRotation');
+    rotationInput.addEventListener('input', () => valRotation.innerText = rotationInput.value + '°');
+
+    // --- PRESETS LOGIC ---
+    function applyPreset(scale, offsetX, offsetY, rotation) {
+        scaleInput.value = scale;
+        offsetXInput.value = offsetX;
+        offsetYInput.value = offsetY;
+        rotationInput.value = rotation;
+        
+        scaleInput.dispatchEvent(new Event('input'));
+        offsetXInput.dispatchEvent(new Event('input'));
+        offsetYInput.dispatchEvent(new Event('input'));
+        rotationInput.dispatchEvent(new Event('input'));
+        
+        triggerAutoUpdate();
+    }
+
+    document.getElementById('presetCenter').addEventListener('click', () => applyPreset(60, 0, 0, 0));
+    document.getElementById('presetFullPage').addEventListener('click', () => applyPreset(100, 0, 0, 0));
+    document.getElementById('presetBottomRight').addEventListener('click', () => applyPreset(30, 180, -250, 0));
+    document.getElementById('presetTopLeft').addEventListener('click', () => applyPreset(30, -180, 250, 0));
+
+    // --- DEBUNCED AUTO-UPDATE LOGIC ---
+    let autoUpdateTimeout = null;
+    function triggerAutoUpdate() {
+        if (!originalPdfBytes) return;
+        if (autoUpdateTimeout) clearTimeout(autoUpdateTimeout);
+        autoUpdateTimeout = setTimeout(() => {
+            document.getElementById('btnGenerate').click();
+        }, 300);
+    }
+
+    // Auto-update triggers
+    ['frontStart', 'frontHidden', 'mainStart', 'chapterPages', 'footerStart', 'footerEnd'].forEach(id => {
+        document.getElementById(id).addEventListener('change', triggerAutoUpdate);
+    });
+    ['offsetXBottom', 'offsetYBottom', 'offsetYTop', 'offsetXSide'].forEach(id => {
+        document.getElementById(id).addEventListener('input', triggerAutoUpdate);
+    });
+
+    document.getElementById('watermarkEnabled').addEventListener('change', triggerAutoUpdate);
+    document.getElementById('watermarkPages').addEventListener('change', triggerAutoUpdate);
+    ['watermarkOpacity', 'watermarkScale', 'watermarkOffsetX', 'watermarkOffsetY', 'watermarkRotation'].forEach(id => {
+        document.getElementById(id).addEventListener('input', triggerAutoUpdate);
+    });
+
+    // --- RANGE PARSER HELPER ---
+    function parsePageRange(str, maxPages) {
+        if (!str || str.trim() === '') return [];
+        if (str.trim().toLowerCase() === 'all') {
+            const pages = [];
+            for (let p = 1; p <= maxPages; p++) pages.push(p);
+            return pages;
+        }
+        const pages = new Set();
+        const parts = str.split(',');
+        for (let part of parts) {
+            part = part.trim();
+            if (part.includes('-')) {
+                const rangeParts = part.split('-');
+                if (rangeParts.length === 2) {
+                    const start = parseInt(rangeParts[0].trim());
+                    const end = parseInt(rangeParts[1].trim());
+                    if (!isNaN(start) && !isNaN(end)) {
+                        const actualStart = Math.min(start, end);
+                        const actualEnd = Math.max(start, end);
+                        for (let p = actualStart; p <= actualEnd; p++) {
+                            if (p >= 1 && p <= maxPages) pages.add(p);
+                        }
+                    }
+                }
+            } else {
+                const p = parseInt(part);
+                if (!isNaN(p) && p >= 1 && p <= maxPages) {
+                    pages.add(p);
+                }
+            }
+        }
+        return Array.from(pages).sort((a, b) => a - b);
+    }
 </script>
 
 </body>
