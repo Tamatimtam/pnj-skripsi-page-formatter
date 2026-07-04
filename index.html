@@ -337,16 +337,24 @@
             const pages = pdfDoc.getPages();
             const embeddedPages = await destPdfDoc.embedPages(pages);
 
+            // Watermark settings
+            const wmPagesStr = document.getElementById('watermarkPages').value;
+            const wmOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || 0.3;
+            const wmScale = parseFloat(document.getElementById('watermarkScale').value) / 100 || 1.0;
+            const wmOffsetX = parseFloat(document.getElementById('watermarkOffsetX').value) || 0;
+            const wmOffsetY = parseFloat(document.getElementById('watermarkOffsetY').value) || 0;
+            const wmRotation = parseFloat(document.getElementById('watermarkRotation').value) || 0;
+
+            const cropL = parseInt(document.getElementById('watermarkCropLeft').value) || 0;
+            const cropR = parseInt(document.getElementById('watermarkCropRight').value) || 0;
+            const cropT = parseInt(document.getElementById('watermarkCropTop').value) || 0;
+            const cropB = parseInt(document.getElementById('watermarkCropBottom').value) || 0;
+
             // Watermark Embedding & Setup
             const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
             let watermarkImage = null;
             if (watermarkEnabled) {
                 try {
-                    const cropL = parseInt(document.getElementById('watermarkCropLeft').value) || 0;
-                    const cropR = parseInt(document.getElementById('watermarkCropRight').value) || 0;
-                    const cropT = parseInt(document.getElementById('watermarkCropTop').value) || 0;
-                    const cropB = parseInt(document.getElementById('watermarkCropBottom').value) || 0;
-
                     const watermarkBytes = await getCroppedWatermarkBytes(cropL, cropR, cropT, cropB);
                     watermarkImage = await destPdfDoc.embedPng(watermarkBytes);
                 } catch (watermarkError) {
@@ -357,14 +365,6 @@
                     return;
                 }
             }
-
-            // Watermark settings
-            const wmPagesStr = document.getElementById('watermarkPages').value;
-            const wmOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || 0.3;
-            const wmScale = parseFloat(document.getElementById('watermarkScale').value) / 100 || 1.0;
-            const wmOffsetX = parseFloat(document.getElementById('watermarkOffsetX').value) || 0;
-            const wmOffsetY = parseFloat(document.getElementById('watermarkOffsetY').value) || 0;
-            const wmRotation = parseFloat(document.getElementById('watermarkRotation').value) || 0;
             const wmTargetPages = watermarkImage ? parsePageRange(wmPagesStr, pages.length) : [];
 
             // Inputs
@@ -419,10 +419,19 @@
                     }
                     extGStates.set(extGStateName, gsRef);
 
-                    const imgWidth = width * wmScale;
-                    const imgHeight = imgWidth * (watermarkImage.height / watermarkImage.width);
-                    const imgX = (width - imgWidth) / 2 + wmOffsetX;
-                    const imgY = (height - imgHeight) / 2 + wmOffsetY;
+                    // Calculate original (uncropped) watermark drawing dimensions
+                    const origDrawWidth = width * wmScale;
+                    const origDrawHeight = origDrawWidth * (1024 / 723); // Aspect ratio of uncropped watermark
+                    
+                    // Original uncropped bottom-left position (centered)
+                    const origX = (width - origDrawWidth) / 2 + wmOffsetX;
+                    const origY = (height - origDrawHeight) / 2 + wmOffsetY;
+                    
+                    // Calculate cropped watermark drawing dimensions and position
+                    const imgWidth = origDrawWidth * (1 - (cropL + cropR) / 100);
+                    const imgHeight = origDrawHeight * (1 - (cropT + cropB) / 100);
+                    const imgX = origX + origDrawWidth * (cropL / 100);
+                    const imgY = origY + origDrawHeight * (cropB / 100);
                     
                     // Save state and set blend mode
                     page.pushOperators(PDFLib.PDFOperator.of('q'));
