@@ -13,6 +13,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        .loader-purple { border-top-color: #9333ea; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -27,20 +28,21 @@
         <!-- Tabs Navigation -->
         <div class="flex border-b border-gray-200 mb-6 text-sm">
             <button id="tabFormatting" class="w-1/2 py-2 text-center font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition">
-                Page & Footer
+                Page &amp; Footer
             </button>
             <button id="tabWatermark" class="w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition">
                 Watermark
             </button>
         </div>
 
-        <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">1. Upload PDF Draft</label>
-            <input type="file" id="pdfInput" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
-        </div>
-
-        <!-- Formatting Tab Content -->
+        <!-- ===================== PAGE & FOOTER TAB ===================== -->
         <div id="containerFormatting" class="space-y-6">
+
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">1. Upload PDF Draft</label>
+                <input type="file" id="pdfInputFormatting" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
+            </div>
+
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-gray-800 mb-3">2. Page Configuration (Physical Pages)</h2>
                 
@@ -106,10 +108,26 @@
                     </div>
                 </div>
             </div>
+
+            <div class="flex flex-col space-y-3">
+                <button id="btnGenerate" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition flex items-center justify-center">
+                    <span id="btnText">Apply &amp; Update Preview</span>
+                    <div id="loadingSpinner" class="hidden loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4 ml-2"></div>
+                </button>
+                <button id="btnDownload" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-green-700 transition hidden">
+                    Download Final PDF
+                </button>
+            </div>
         </div>
 
-        <!-- Watermarking Tab Content -->
+        <!-- ===================== WATERMARK TAB ===================== -->
         <div id="containerWatermark" class="hidden space-y-6">
+
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">1. Upload PDF Draft</label>
+                <input type="file" id="pdfInputWatermark" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 transition">
+            </div>
+
             <div class="bg-purple-50 p-4 rounded-lg">
                 <h2 class="text-sm font-semibold text-purple-950 mb-3">2. Watermark Configuration</h2>
                 
@@ -229,18 +247,18 @@
                     </div>
                 </div>
             </div>
+
+            <div class="flex flex-col space-y-3">
+                <button id="btnGenerateWatermark" class="w-full bg-purple-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-purple-700 transition flex items-center justify-center">
+                    <span id="btnTextWatermark">Apply &amp; Update Preview</span>
+                    <div id="loadingSpinnerWatermark" class="hidden loader-purple ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4 ml-2"></div>
+                </button>
+                <button id="btnDownloadWatermark" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-green-700 transition hidden">
+                    Download Final PDF
+                </button>
+            </div>
         </div>
 
-
-        <div class="flex flex-col space-y-3">
-            <button id="btnGenerate" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition flex items-center justify-center">
-                <span id="btnText">Apply & Update Preview</span>
-                <div id="loadingSpinner" class="hidden loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4 ml-2"></div>
-            </button>
-            <button id="btnDownload" class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-green-700 transition hidden">
-                Download Final PDF
-            </button>
-        </div>
     </div>
 
     <div class="w-full md:w-2/3 bg-gray-800 relative flex items-center justify-center min-h-[50vh]">
@@ -251,8 +269,14 @@
 </div>
 
 <script>
-    let originalPdfBytes = null;
-    let modifiedPdfBytes = null;
+    // =====================================================================
+    // STATE — separate PDF bytes per tab
+    // =====================================================================
+    let originalPdfBytesFormatting = null;
+    let modifiedPdfBytesFormatting = null;
+
+    let originalPdfBytesWatermark = null;
+    let modifiedPdfBytesWatermark = null;
 
     // Standard Skripsi Margins in PDF points (1 cm = 28.346 points)
     const CM_TO_PT = 28.346;
@@ -276,16 +300,67 @@
         return str.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
     }
 
-    document.getElementById('pdfInput').addEventListener('change', async (e) => {
+    function parsePageRange(str, maxPages) {
+        if (!str || str.trim() === '') return [];
+        if (str.trim().toLowerCase() === 'all') {
+            const pages = [];
+            for (let p = 1; p <= maxPages; p++) pages.push(p);
+            return pages;
+        }
+        const pages = new Set();
+        const parts = str.split(',');
+        for (let part of parts) {
+            part = part.trim();
+            if (part.includes('-')) {
+                const rangeParts = part.split('-');
+                if (rangeParts.length === 2) {
+                    const start = parseInt(rangeParts[0].trim());
+                    const end = parseInt(rangeParts[1].trim());
+                    if (!isNaN(start) && !isNaN(end)) {
+                        const actualStart = Math.min(start, end);
+                        const actualEnd = Math.max(start, end);
+                        for (let p = actualStart; p <= actualEnd; p++) {
+                            if (p >= 1 && p <= maxPages) pages.add(p);
+                        }
+                    }
+                }
+            } else {
+                const p = parseInt(part);
+                if (!isNaN(p) && p >= 1 && p <= maxPages) {
+                    pages.add(p);
+                }
+            }
+        }
+        return Array.from(pages).sort((a, b) => a - b);
+    }
+
+    function showPreview(pdfBytes) {
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('placeholderText').classList.add('hidden');
+        const iframe = document.getElementById('pdfPreview');
+        iframe.src = url;
+        iframe.classList.remove('hidden');
+    }
+
+    // =====================================================================
+    // PAGE & FOOTER TAB — file upload
+    // =====================================================================
+    document.getElementById('pdfInputFormatting').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
-            originalPdfBytes = await file.arrayBuffer();
+            originalPdfBytesFormatting = await file.arrayBuffer();
+            modifiedPdfBytesFormatting = null;
+            document.getElementById('btnDownload').classList.add('hidden');
             alert("File loaded! Please adjust your page settings and click 'Apply & Update Preview'.");
         }
     });
 
+    // =====================================================================
+    // PAGE & FOOTER TAB — apply
+    // =====================================================================
     document.getElementById('btnGenerate').addEventListener('click', async () => {
-        if (!originalPdfBytes) {
+        if (!originalPdfBytesFormatting) {
             alert("Please upload a PDF first.");
             return;
         }
@@ -296,20 +371,10 @@
         spinner.classList.remove('hidden');
 
         try {
-            const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
-            
-            // Create destination document for layering
+            const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytesFormatting);
             const destPdfDoc = await PDFLib.PDFDocument.create();
             destPdfDoc.registerFontkit(window.fontkit);
-            
-            // Create ExtGState dictionary for Multiply blend mode
-            const gsDict = destPdfDoc.context.obj({
-                Type: 'ExtGState',
-                BM: PDFLib.PDFName.of('Multiply'),
-            });
-            const gsRef = destPdfDoc.context.register(gsDict);
-            const extGStateName = PDFLib.PDFName.of('GS1');
-            
+
             const font = await destPdfDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
             const fontSize = 12;
             
@@ -317,14 +382,11 @@
             let fontBold;
             try {
                 const fontBytesResponse = await fetch('ArialBold.ttf');
-                
                 if (!fontBytesResponse.ok) {
                     throw new Error(`HTTP Error: ${fontBytesResponse.status} ${fontBytesResponse.statusText}. Apakah file Arial Bold.ttf ada di folder yang sama?`);
                 }
-                
                 const fontBytes = await fontBytesResponse.arrayBuffer();
                 fontBold = await destPdfDoc.embedFont(fontBytes);
-                
             } catch (fontError) {
                 console.error("CRITICAL ERROR: Failed to load TTF file.", fontError);
                 alert(`GAGAL: File 'Arial Bold.ttf' tidak bisa dimuat!\n\nDetail Error: ${fontError.message}`);
@@ -332,45 +394,13 @@
                 spinner.classList.add('hidden');
                 return; 
             }
-            // ---------------------------------------------
 
             const pages = pdfDoc.getPages();
             const embeddedPages = await destPdfDoc.embedPages(pages);
 
-            // Watermark settings
-            const wmPagesStr = document.getElementById('watermarkPages').value;
-            const wmOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || 0.3;
-            const wmScale = parseFloat(document.getElementById('watermarkScale').value) / 100 || 1.0;
-            const wmOffsetX = parseFloat(document.getElementById('watermarkOffsetX').value) || 0;
-            const wmOffsetY = parseFloat(document.getElementById('watermarkOffsetY').value) || 0;
-            const wmRotation = parseFloat(document.getElementById('watermarkRotation').value) || 0;
-
-            const cropL = parseInt(document.getElementById('watermarkCropLeft').value) || 0;
-            const cropR = parseInt(document.getElementById('watermarkCropRight').value) || 0;
-            const cropT = parseInt(document.getElementById('watermarkCropTop').value) || 0;
-            const cropB = parseInt(document.getElementById('watermarkCropBottom').value) || 0;
-
-            // Watermark Embedding & Setup
-            const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
-            let watermarkImage = null;
-            if (watermarkEnabled) {
-                try {
-                    const watermarkBytes = await getCroppedWatermarkBytes(cropL, cropR, cropT, cropB);
-                    watermarkImage = await destPdfDoc.embedPng(watermarkBytes);
-                } catch (watermarkError) {
-                    console.error("Failed to load or crop watermark image:", watermarkError);
-                    alert(`GAGAL: File 'watermark.png' tidak bisa dimuat atau dipotong!\n\nDetail Error: ${watermarkError.message}`);
-                    btnText.innerText = "Apply & Update Preview";
-                    spinner.classList.add('hidden');
-                    return;
-                }
-            }
-            const wmTargetPages = watermarkImage ? parsePageRange(wmPagesStr, pages.length) : [];
-
             // Inputs
             const frontStart = parseInt(document.getElementById('frontStart').value) || 0;
             const frontHidden = parseArrayStr(document.getElementById('frontHidden').value);
-            
             const mainStart = parseInt(document.getElementById('mainStart').value) || 0;
             const chapterPages = parseArrayStr(document.getElementById('chapterPages').value);
 
@@ -383,7 +413,6 @@
             const offYTop = parseFloat(document.getElementById('offsetYTop').value) || 0;
             const offXSide = parseFloat(document.getElementById('offsetXSide').value) || 0;
 
-            // Footer Constant Settings
             const autoTextString = "Jurusan Teknik Informatika dan Komputer – Politeknik Negeri Jakarta";
             const autoTextFontSize = 10;
             const autoTextWidth = fontBold.widthOfTextAtSize(autoTextString, autoTextFontSize);
@@ -393,63 +422,12 @@
                 const srcPage = pages[i];
                 const { width, height } = srcPage.getSize();
                 
-                // Create a blank page in destPdfDoc
                 const newPage = destPdfDoc.addPage([width, height]);
                 const page = newPage;
                 
-                // --- 0.5 DRAW ORIGINAL PAGE CONTENT ---
-                page.drawPage(embeddedPages[i], {
-                    x: 0,
-                    y: 0,
-                    width: width,
-                    height: height
-                });
-                
-                // --- 0.6 DRAW WATERMARK ON TOP OF CONTENT ---
-                if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
-                    // Register ExtGState in this page's resources
-                    if (!page.node.Resources()) {
-                        page.node.set(PDFLib.PDFName.of('Resources'), destPdfDoc.context.obj({}));
-                    }
-                    const resources = page.node.Resources();
-                    let extGStates = resources.get(PDFLib.PDFName.of('ExtGState'));
-                    if (!extGStates) {
-                        extGStates = destPdfDoc.context.obj({});
-                        resources.set(PDFLib.PDFName.of('ExtGState'), extGStates);
-                    }
-                    extGStates.set(extGStateName, gsRef);
+                // Draw original page content
+                page.drawPage(embeddedPages[i], { x: 0, y: 0, width, height });
 
-                    // Calculate original (uncropped) watermark drawing dimensions
-                    const origDrawWidth = width * wmScale;
-                    const origDrawHeight = origDrawWidth * (1024 / 723); // Aspect ratio of uncropped watermark
-                    
-                    // Original uncropped bottom-left position (centered)
-                    const origX = (width - origDrawWidth) / 2 + wmOffsetX;
-                    const origY = (height - origDrawHeight) / 2 + wmOffsetY;
-                    
-                    // Calculate cropped watermark drawing dimensions and position
-                    const imgWidth = origDrawWidth * (1 - (cropL + cropR) / 100);
-                    const imgHeight = origDrawHeight * (1 - (cropT + cropB) / 100);
-                    const imgX = origX + origDrawWidth * (cropL / 100);
-                    const imgY = origY + origDrawHeight * (cropB / 100);
-                    
-                    // Save state and set blend mode
-                    page.pushOperators(PDFLib.PDFOperator.of('q'));
-                    page.pushOperators(PDFLib.PDFOperator.of('gs', [extGStateName]));
-
-                    page.drawImage(watermarkImage, {
-                        x: imgX,
-                        y: imgY,
-                        width: imgWidth,
-                        height: imgHeight,
-                        opacity: wmOpacity,
-                        rotate: PDFLib.degrees(wmRotation)
-                    });
-
-                    // Restore state
-                    page.pushOperators(PDFLib.PDFOperator.of('Q'));
-                }
-                
                 // --- 1. DRAW PAGE NUMBERS ---
                 let textToDraw = "";
                 let drawX = 0;
@@ -490,28 +468,20 @@
 
                 // --- 2. DRAW AUTO-TEXT FOOTER ---
                 if (footerStart > 0 && physicalPageNum >= footerStart && physicalPageNum <= footerEnd) {
-                    // Rule exception: Do NOT draw if it is a BAB opening page
                     if (!chapterPages.includes(physicalPageNum)) {
                         page.drawText(autoTextString, {
-                            x: width - MARGIN_SIDE - autoTextWidth - offXSide, // Right aligned
-                            y: MARGIN_BOTTOM + offYBot, // Same baseline as center bottom numbers
+                            x: width - MARGIN_SIDE - autoTextWidth - offXSide,
+                            y: MARGIN_BOTTOM + offYBot,
                             size: autoTextFontSize,
-                            font: fontBold, 
+                            font: fontBold,
                             color: PDFLib.rgb(0, 0, 0),
                         });
                     }
                 }
             }
 
-            modifiedPdfBytes = await destPdfDoc.save();
-            const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" });
-            const url = URL.createObjectURL(blob);
-            
-            document.getElementById('placeholderText').classList.add('hidden');
-            const iframe = document.getElementById('pdfPreview');
-            iframe.src = url;
-            iframe.classList.remove('hidden');
-
+            modifiedPdfBytesFormatting = await destPdfDoc.save();
+            showPreview(modifiedPdfBytesFormatting);
             document.getElementById('btnDownload').classList.remove('hidden');
 
         } catch (error) {
@@ -523,9 +493,10 @@
         }
     });
 
+    // Page & Footer — download
     document.getElementById('btnDownload').addEventListener('click', () => {
-        if (!modifiedPdfBytes) return;
-        const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" });
+        if (!modifiedPdfBytesFormatting) return;
+        const blob = new Blob([modifiedPdfBytesFormatting], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -536,7 +507,158 @@
         URL.revokeObjectURL(url);
     });
 
-    // --- TABS NAVIGATION LOGIC ---
+    // =====================================================================
+    // WATERMARK TAB — file upload
+    // =====================================================================
+    document.getElementById('pdfInputWatermark').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            originalPdfBytesWatermark = await file.arrayBuffer();
+            modifiedPdfBytesWatermark = null;
+            document.getElementById('btnDownloadWatermark').classList.add('hidden');
+            alert("File loaded! Please adjust your watermark settings and click 'Apply & Update Preview'.");
+        }
+    });
+
+    // =====================================================================
+    // WATERMARK TAB — apply
+    // =====================================================================
+    document.getElementById('btnGenerateWatermark').addEventListener('click', async () => {
+        if (!originalPdfBytesWatermark) {
+            alert("Please upload a PDF first.");
+            return;
+        }
+
+        const btnText = document.getElementById('btnTextWatermark');
+        const spinner = document.getElementById('loadingSpinnerWatermark');
+        btnText.innerText = "Processing...";
+        spinner.classList.remove('hidden');
+
+        try {
+            const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytesWatermark);
+            const destPdfDoc = await PDFLib.PDFDocument.create();
+
+            // ExtGState for Multiply blend mode
+            const gsDict = destPdfDoc.context.obj({
+                Type: 'ExtGState',
+                BM: PDFLib.PDFName.of('Multiply'),
+            });
+            const gsRef = destPdfDoc.context.register(gsDict);
+            const extGStateName = PDFLib.PDFName.of('GS1');
+
+            const pages = pdfDoc.getPages();
+            const embeddedPages = await destPdfDoc.embedPages(pages);
+
+            // Watermark settings
+            const wmPagesStr = document.getElementById('watermarkPages').value;
+            const wmOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || 0.3;
+            const wmScale = parseFloat(document.getElementById('watermarkScale').value) / 100 || 1.0;
+            const wmOffsetX = parseFloat(document.getElementById('watermarkOffsetX').value) || 0;
+            const wmOffsetY = parseFloat(document.getElementById('watermarkOffsetY').value) || 0;
+            const wmRotation = parseFloat(document.getElementById('watermarkRotation').value) || 0;
+
+            const cropL = parseInt(document.getElementById('watermarkCropLeft').value) || 0;
+            const cropR = parseInt(document.getElementById('watermarkCropRight').value) || 0;
+            const cropT = parseInt(document.getElementById('watermarkCropTop').value) || 0;
+            const cropB = parseInt(document.getElementById('watermarkCropBottom').value) || 0;
+
+            const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
+            let watermarkImage = null;
+            if (watermarkEnabled) {
+                try {
+                    const watermarkBytes = await getCroppedWatermarkBytes(cropL, cropR, cropT, cropB);
+                    watermarkImage = await destPdfDoc.embedPng(watermarkBytes);
+                } catch (watermarkError) {
+                    console.error("Failed to load or crop watermark image:", watermarkError);
+                    alert(`GAGAL: File 'watermark.png' tidak bisa dimuat atau dipotong!\n\nDetail Error: ${watermarkError.message}`);
+                    btnText.innerText = "Apply & Update Preview";
+                    spinner.classList.add('hidden');
+                    return;
+                }
+            }
+            const wmTargetPages = watermarkImage ? parsePageRange(wmPagesStr, pages.length) : [];
+
+            for (let i = 0; i < pages.length; i++) {
+                const physicalPageNum = i + 1;
+                const srcPage = pages[i];
+                const { width, height } = srcPage.getSize();
+                
+                const newPage = destPdfDoc.addPage([width, height]);
+                const page = newPage;
+                
+                // Draw original page content
+                page.drawPage(embeddedPages[i], { x: 0, y: 0, width, height });
+
+                // Draw watermark on top
+                if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
+                    if (!page.node.Resources()) {
+                        page.node.set(PDFLib.PDFName.of('Resources'), destPdfDoc.context.obj({}));
+                    }
+                    const resources = page.node.Resources();
+                    let extGStates = resources.get(PDFLib.PDFName.of('ExtGState'));
+                    if (!extGStates) {
+                        extGStates = destPdfDoc.context.obj({});
+                        resources.set(PDFLib.PDFName.of('ExtGState'), extGStates);
+                    }
+                    extGStates.set(extGStateName, gsRef);
+
+                    const origDrawWidth = width * wmScale;
+                    const origDrawHeight = origDrawWidth * (1024 / 723);
+                    
+                    const origX = (width - origDrawWidth) / 2 + wmOffsetX;
+                    const origY = (height - origDrawHeight) / 2 + wmOffsetY;
+                    
+                    const imgWidth = origDrawWidth * (1 - (cropL + cropR) / 100);
+                    const imgHeight = origDrawHeight * (1 - (cropT + cropB) / 100);
+                    const imgX = origX + origDrawWidth * (cropL / 100);
+                    const imgY = origY + origDrawHeight * (cropB / 100);
+                    
+                    page.pushOperators(PDFLib.PDFOperator.of('q'));
+                    page.pushOperators(PDFLib.PDFOperator.of('gs', [extGStateName]));
+
+                    page.drawImage(watermarkImage, {
+                        x: imgX,
+                        y: imgY,
+                        width: imgWidth,
+                        height: imgHeight,
+                        opacity: wmOpacity,
+                        rotate: PDFLib.degrees(wmRotation)
+                    });
+
+                    page.pushOperators(PDFLib.PDFOperator.of('Q'));
+                }
+            }
+
+            modifiedPdfBytesWatermark = await destPdfDoc.save();
+            showPreview(modifiedPdfBytesWatermark);
+            document.getElementById('btnDownloadWatermark').classList.remove('hidden');
+
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan sistem saat generate PDF. Cek console browser (F12) untuk detail.");
+        } finally {
+            btnText.innerText = "Apply & Update Preview";
+            spinner.classList.add('hidden');
+        }
+    });
+
+    // Watermark — download
+    document.getElementById('btnDownloadWatermark').addEventListener('click', () => {
+        if (!modifiedPdfBytesWatermark) return;
+        const blob = new Blob([modifiedPdfBytesWatermark], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Skripsi_Watermarked.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // =====================================================================
+    // TABS NAVIGATION LOGIC
+    // =====================================================================
     const tabFormatting = document.getElementById('tabFormatting');
     const tabWatermark = document.getElementById('tabWatermark');
     const containerFormatting = document.getElementById('containerFormatting');
@@ -556,7 +678,9 @@
         containerWatermark.classList.remove('hidden');
     });
 
-    // --- WATERMARK RANGE SLIDERS LOGIC ---
+    // =====================================================================
+    // WATERMARK RANGE SLIDERS LOGIC
+    // =====================================================================
     const opacityInput = document.getElementById('watermarkOpacity');
     const valOpacity = document.getElementById('valOpacity');
     opacityInput.addEventListener('input', () => valOpacity.innerText = parseFloat(opacityInput.value).toFixed(2));
@@ -593,7 +717,9 @@
     const valCropBottom = document.getElementById('valCropBottom');
     cropBottomInput.addEventListener('input', () => valCropBottom.innerText = cropBottomInput.value + '%');
 
-    // --- PRESETS LOGIC ---
+    // =====================================================================
+    // PRESETS LOGIC
+    // =====================================================================
     function applyPreset(scale, offsetX, offsetY, rotation) {
         scaleInput.value = scale;
         offsetXInput.value = offsetX;
@@ -609,13 +735,12 @@
         offsetXInput.dispatchEvent(new Event('input'));
         offsetYInput.dispatchEvent(new Event('input'));
         rotationInput.dispatchEvent(new Event('input'));
-        
         cropLeftInput.dispatchEvent(new Event('input'));
         cropRightInput.dispatchEvent(new Event('input'));
         cropTopInput.dispatchEvent(new Event('input'));
         cropBottomInput.dispatchEvent(new Event('input'));
         
-        triggerAutoUpdate();
+        triggerAutoUpdateWatermark();
     }
 
     document.getElementById('presetCenter').addEventListener('click', () => applyPreset(60, 0, 0, 0));
@@ -623,31 +748,43 @@
     document.getElementById('presetBottomRight').addEventListener('click', () => applyPreset(30, 180, -250, 0));
     document.getElementById('presetTopLeft').addEventListener('click', () => applyPreset(30, -180, 250, 0));
 
-    // --- DEBUNCED AUTO-UPDATE LOGIC ---
-    let autoUpdateTimeout = null;
-    function triggerAutoUpdate() {
-        if (!originalPdfBytes) return;
-        if (autoUpdateTimeout) clearTimeout(autoUpdateTimeout);
-        autoUpdateTimeout = setTimeout(() => {
+    // =====================================================================
+    // AUTO-UPDATE LOGIC — separate per tab
+    // =====================================================================
+    let autoUpdateTimeoutFormatting = null;
+    function triggerAutoUpdateFormatting() {
+        if (!originalPdfBytesFormatting) return;
+        if (autoUpdateTimeoutFormatting) clearTimeout(autoUpdateTimeoutFormatting);
+        autoUpdateTimeoutFormatting = setTimeout(() => {
             document.getElementById('btnGenerate').click();
         }, 300);
     }
 
-    // Auto-update triggers
+    let autoUpdateTimeoutWatermark = null;
+    function triggerAutoUpdateWatermark() {
+        if (!originalPdfBytesWatermark) return;
+        if (autoUpdateTimeoutWatermark) clearTimeout(autoUpdateTimeoutWatermark);
+        autoUpdateTimeoutWatermark = setTimeout(() => {
+            document.getElementById('btnGenerateWatermark').click();
+        }, 300);
+    }
+
     ['frontStart', 'frontHidden', 'mainStart', 'chapterPages', 'footerStart', 'footerEnd'].forEach(id => {
-        document.getElementById(id).addEventListener('change', triggerAutoUpdate);
+        document.getElementById(id).addEventListener('change', triggerAutoUpdateFormatting);
     });
     ['offsetXBottom', 'offsetYBottom', 'offsetYTop', 'offsetXSide'].forEach(id => {
-        document.getElementById(id).addEventListener('input', triggerAutoUpdate);
+        document.getElementById(id).addEventListener('input', triggerAutoUpdateFormatting);
     });
 
-    document.getElementById('watermarkEnabled').addEventListener('change', triggerAutoUpdate);
-    document.getElementById('watermarkPages').addEventListener('change', triggerAutoUpdate);
+    document.getElementById('watermarkEnabled').addEventListener('change', triggerAutoUpdateWatermark);
+    document.getElementById('watermarkPages').addEventListener('change', triggerAutoUpdateWatermark);
     ['watermarkOpacity', 'watermarkScale', 'watermarkOffsetX', 'watermarkOffsetY', 'watermarkRotation', 'watermarkCropLeft', 'watermarkCropRight', 'watermarkCropTop', 'watermarkCropBottom'].forEach(id => {
-        document.getElementById(id).addEventListener('input', triggerAutoUpdate);
+        document.getElementById(id).addEventListener('input', triggerAutoUpdateWatermark);
     });
 
-    // --- WATERMARK IMAGE CACHING & CROPPING ---
+    // =====================================================================
+    // WATERMARK IMAGE CACHING & CROPPING
+    // =====================================================================
     let watermarkImgCache = null;
 
     function loadWatermarkImage() {
@@ -671,66 +808,26 @@
         const originalWidth = img.naturalWidth;
         const originalHeight = img.naturalHeight;
         
-        // Calculate crop rectangle
         const sx = Math.floor(originalWidth * (cropL / 100));
         const sy = Math.floor(originalHeight * (cropT / 100));
         const sWidth = Math.max(1, Math.floor(originalWidth * (1 - (cropL + cropR) / 100)));
         const sHeight = Math.max(1, Math.floor(originalHeight * (1 - (cropT + cropB) / 100)));
         
-        // Create offscreen canvas
         const canvas = document.createElement('canvas');
         canvas.width = sWidth;
         canvas.height = sHeight;
         const ctx = canvas.getContext('2d');
-        
-        // Draw only the cropped portion of the image
         ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
         
-        // Convert canvas to Blob array buffer
         return new Promise((resolve) => {
             canvas.toBlob((blob) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    resolve(reader.result); // ArrayBuffer
+                    resolve(reader.result);
                 };
                 reader.readAsArrayBuffer(blob);
             }, 'image/png');
         });
-    }
-
-    // --- RANGE PARSER HELPER ---
-    function parsePageRange(str, maxPages) {
-        if (!str || str.trim() === '') return [];
-        if (str.trim().toLowerCase() === 'all') {
-            const pages = [];
-            for (let p = 1; p <= maxPages; p++) pages.push(p);
-            return pages;
-        }
-        const pages = new Set();
-        const parts = str.split(',');
-        for (let part of parts) {
-            part = part.trim();
-            if (part.includes('-')) {
-                const rangeParts = part.split('-');
-                if (rangeParts.length === 2) {
-                    const start = parseInt(rangeParts[0].trim());
-                    const end = parseInt(rangeParts[1].trim());
-                    if (!isNaN(start) && !isNaN(end)) {
-                        const actualStart = Math.min(start, end);
-                        const actualEnd = Math.max(start, end);
-                        for (let p = actualStart; p <= actualEnd; p++) {
-                            if (p >= 1 && p <= maxPages) pages.add(p);
-                        }
-                    }
-                }
-            } else {
-                const p = parseInt(part);
-                if (!isNaN(p) && p >= 1 && p <= maxPages) {
-                    pages.add(p);
-                }
-            }
-        }
-        return Array.from(pages).sort((a, b) => a - b);
     }
 </script>
 
