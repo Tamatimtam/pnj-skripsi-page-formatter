@@ -669,8 +669,9 @@
 
             const pages = pdfDoc.getPages();
             const wmLayering = document.getElementById('watermarkLayering').value || 'behind';
+            const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
             
-            if (watermarkImage || watermarkEnabled) {
+            if (watermarkEnabled) {
                 if (wmLayering === 'behind') {
                     for (let i = 0; i < pages.length; i++) {
                         makePageBackgroundTransparent(pages[i], pdfDoc);
@@ -693,7 +694,6 @@
             const cropT = parseInt(document.getElementById('watermarkCropTop').value) || 0;
             const cropB = parseInt(document.getElementById('watermarkCropBottom').value) || 0;
 
-            const watermarkEnabled = document.getElementById('watermarkEnabled').checked;
             let watermarkImage = null;
             if (watermarkEnabled) {
                 try {
