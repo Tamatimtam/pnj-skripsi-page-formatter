@@ -766,21 +766,36 @@
     // =====================================================================
     const tabFormatting = document.getElementById('tabFormatting');
     const tabWatermark = document.getElementById('tabWatermark');
+    const tabSplit = document.getElementById('tabSplit');
     const containerFormatting = document.getElementById('containerFormatting');
     const containerWatermark = document.getElementById('containerWatermark');
+    const containerSplit = document.getElementById('containerSplit');
 
     tabFormatting.addEventListener('click', () => {
-        tabFormatting.className = "w-1/2 py-2 text-center font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition";
-        tabWatermark.className = "w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabFormatting.className = "w-1/3 py-2 text-center font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition";
+        tabWatermark.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabSplit.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
         containerFormatting.classList.remove('hidden');
         containerWatermark.classList.add('hidden');
+        containerSplit.classList.add('hidden');
     });
 
     tabWatermark.addEventListener('click', () => {
-        tabFormatting.className = "w-1/2 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
-        tabWatermark.className = "w-1/2 py-2 text-center font-bold border-b-2 border-purple-600 text-purple-600 focus:outline-none transition";
+        tabFormatting.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabWatermark.className = "w-1/3 py-2 text-center font-bold border-b-2 border-purple-600 text-purple-600 focus:outline-none transition";
+        tabSplit.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
         containerFormatting.classList.add('hidden');
         containerWatermark.classList.remove('hidden');
+        containerSplit.classList.add('hidden');
+    });
+
+    tabSplit.addEventListener('click', () => {
+        tabFormatting.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabWatermark.className = "w-1/3 py-2 text-center font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-700 focus:outline-none transition";
+        tabSplit.className = "w-1/3 py-2 text-center font-bold border-b-2 border-amber-600 text-amber-600 focus:outline-none transition";
+        containerFormatting.classList.add('hidden');
+        containerWatermark.classList.add('hidden');
+        containerSplit.classList.remove('hidden');
     });
 
     // =====================================================================
