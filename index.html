@@ -150,6 +150,20 @@
                         <p class="text-xs text-gray-500 mb-1.5">Apply to e.g., "1, 3, 5-7" or "all".</p>
                         <input type="text" id="watermarkPages" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500" placeholder="e.g., all" value="all">
                     </div>
+                    
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Exclude Pages</label>
+                        <p class="text-xs text-gray-500 mb-1.5">Skip pages, e.g. "2, 4, 8-10".</p>
+                        <input type="text" id="watermarkExcludePages" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500" placeholder="e.g., none" value="">
+                    </div>
+
+                    <div>
+                        <label class="block font-medium text-gray-700 mb-1">Watermark Layering</label>
+                        <select id="watermarkLayering" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500 text-sm">
+                            <option value="behind">Behind Content (Recommended - ignores white images)</option>
+                            <option value="top">On Top of Content</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -681,7 +695,13 @@
                     return;
                 }
             }
-            const wmTargetPages = watermarkImage ? parsePageRange(wmPagesStr, pages.length) : [];
+            const wmExcludeStr = document.getElementById('watermarkExcludePages').value || '';
+            const wmLayering = document.getElementById('watermarkLayering').value || 'behind';
+
+            const wmExcludePages = parsePageRange(wmExcludeStr, pages.length);
+            const wmTargetPages = watermarkImage 
+                ? parsePageRange(wmPagesStr, pages.length).filter(p => !wmExcludePages.includes(p)) 
+                : [];
 
             for (let i = 0; i < pages.length; i++) {
                 const physicalPageNum = i + 1;
@@ -690,47 +710,58 @@
                 
                 const newPage = destPdfDoc.addPage([width, height]);
                 const page = newPage;
+
+                const drawWatermarkFn = () => {
+                    if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
+                        if (!page.node.Resources()) {
+                            page.node.set(PDFLib.PDFName.of('Resources'), destPdfDoc.context.obj({}));
+                        }
+                        const resources = page.node.Resources();
+                        let extGStates = resources.get(PDFLib.PDFName.of('ExtGState'));
+                        if (!extGStates) {
+                            extGStates = destPdfDoc.context.obj({});
+                            resources.set(PDFLib.PDFName.of('ExtGState'), extGStates);
+                        }
+                        extGStates.set(extGStateName, gsRef);
+
+                        const origDrawWidth = width * wmScale;
+                        const origDrawHeight = origDrawWidth * (1024 / 723);
+                        
+                        const origX = (width - origDrawWidth) / 2 + wmOffsetX;
+                        const origY = (height - origDrawHeight) / 2 + wmOffsetY;
+                        
+                        const imgWidth = origDrawWidth * (1 - (cropL + cropR) / 100);
+                        const imgHeight = origDrawHeight * (1 - (cropT + cropB) / 100);
+                        const imgX = origX + origDrawWidth * (cropL / 100);
+                        const imgY = origY + origDrawHeight * (cropB / 100);
+                        
+                        page.pushOperators(PDFLib.PDFOperator.of('q'));
+                        page.pushOperators(PDFLib.PDFOperator.of('gs', [extGStateName]));
+
+                        page.drawImage(watermarkImage, {
+                            x: imgX,
+                            y: imgY,
+                            width: imgWidth,
+                            height: imgHeight,
+                            opacity: wmOpacity,
+                            rotate: PDFLib.degrees(wmRotation)
+                        });
+
+                        page.pushOperators(PDFLib.PDFOperator.of('Q'));
+                    }
+                };
+
+                // Draw watermark behind content if configured
+                if (wmLayering === 'behind') {
+                    drawWatermarkFn();
+                }
                 
                 // Draw original page content
                 page.drawPage(embeddedPages[i], { x: 0, y: 0, width, height });
 
-                // Draw watermark on top
-                if (watermarkImage && wmTargetPages.includes(physicalPageNum)) {
-                    if (!page.node.Resources()) {
-                        page.node.set(PDFLib.PDFName.of('Resources'), destPdfDoc.context.obj({}));
-                    }
-                    const resources = page.node.Resources();
-                    let extGStates = resources.get(PDFLib.PDFName.of('ExtGState'));
-                    if (!extGStates) {
-                        extGStates = destPdfDoc.context.obj({});
-                        resources.set(PDFLib.PDFName.of('ExtGState'), extGStates);
-                    }
-                    extGStates.set(extGStateName, gsRef);
-
-                    const origDrawWidth = width * wmScale;
-                    const origDrawHeight = origDrawWidth * (1024 / 723);
-                    
-                    const origX = (width - origDrawWidth) / 2 + wmOffsetX;
-                    const origY = (height - origDrawHeight) / 2 + wmOffsetY;
-                    
-                    const imgWidth = origDrawWidth * (1 - (cropL + cropR) / 100);
-                    const imgHeight = origDrawHeight * (1 - (cropT + cropB) / 100);
-                    const imgX = origX + origDrawWidth * (cropL / 100);
-                    const imgY = origY + origDrawHeight * (cropB / 100);
-                    
-                    page.pushOperators(PDFLib.PDFOperator.of('q'));
-                    page.pushOperators(PDFLib.PDFOperator.of('gs', [extGStateName]));
-
-                    page.drawImage(watermarkImage, {
-                        x: imgX,
-                        y: imgY,
-                        width: imgWidth,
-                        height: imgHeight,
-                        opacity: wmOpacity,
-                        rotate: PDFLib.degrees(wmRotation)
-                    });
-
-                    page.pushOperators(PDFLib.PDFOperator.of('Q'));
+                // Draw watermark on top of content if configured
+                if (wmLayering === 'top') {
+                    drawWatermarkFn();
                 }
             }
 
@@ -898,6 +929,9 @@
 
     document.getElementById('watermarkEnabled').addEventListener('change', triggerAutoUpdateWatermark);
     document.getElementById('watermarkPages').addEventListener('change', triggerAutoUpdateWatermark);
+    document.getElementById('watermarkExcludePages').addEventListener('change', triggerAutoUpdateWatermark);
+    document.getElementById('watermarkExcludePages').addEventListener('input', triggerAutoUpdateWatermark);
+    document.getElementById('watermarkLayering').addEventListener('change', triggerAutoUpdateWatermark);
     ['watermarkOpacity', 'watermarkScale', 'watermarkOffsetX', 'watermarkOffsetY', 'watermarkRotation', 'watermarkCropLeft', 'watermarkCropRight', 'watermarkCropTop', 'watermarkCropBottom'].forEach(id => {
         document.getElementById(id).addEventListener('input', triggerAutoUpdateWatermark);
     });
