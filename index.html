@@ -160,8 +160,8 @@
                     <div>
                         <label class="block font-medium text-gray-700 mb-1">Watermark Layering</label>
                         <select id="watermarkLayering" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500 text-sm">
-                            <option value="behind">Behind Content (Recommended - ignores white images)</option>
-                            <option value="top">On Top of Content</option>
+                            <option value="top" selected>On Top of Content (Works for Word/Google Docs PDFs)</option>
+                            <option value="behind">Behind Content (Requires PDF with transparent background)</option>
                         </select>
                     </div>
                 </div>
@@ -696,7 +696,7 @@
                 }
             }
             const wmExcludeStr = document.getElementById('watermarkExcludePages').value || '';
-            const wmLayering = document.getElementById('watermarkLayering').value || 'behind';
+            const wmLayering = document.getElementById('watermarkLayering').value || 'top';
 
             const wmExcludePages = parsePageRange(wmExcludeStr, pages.length);
             const wmTargetPages = watermarkImage 
