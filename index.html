@@ -12,6 +12,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
+    <script src="https://unpkg.com/pako@2.1.0/dist/pako.min.js"></script>
+    
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
@@ -160,8 +162,8 @@
                     <div>
                         <label class="block font-medium text-gray-700 mb-1">Watermark Layering</label>
                         <select id="watermarkLayering" class="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500 text-sm">
-                            <option value="top" selected>On Top of Content (Works for Word/Google Docs PDFs)</option>
-                            <option value="behind">Behind Content (Requires PDF with transparent background)</option>
+                            <option value="behind" selected>Behind Content (Recommended - ignores white images)</option>
+                            <option value="top">On Top of Content</option>
                         </select>
                     </div>
                 </div>
@@ -666,6 +668,16 @@
             const extGStateName = PDFLib.PDFName.of('GS1');
 
             const pages = pdfDoc.getPages();
+            const wmLayering = document.getElementById('watermarkLayering').value || 'behind';
+            
+            if (watermarkImage || watermarkEnabled) {
+                if (wmLayering === 'behind') {
+                    for (let i = 0; i < pages.length; i++) {
+                        makePageBackgroundTransparent(pages[i], pdfDoc);
+                    }
+                }
+            }
+
             const embeddedPages = await destPdfDoc.embedPages(pages);
 
             // Watermark settings
@@ -696,7 +708,6 @@
                 }
             }
             const wmExcludeStr = document.getElementById('watermarkExcludePages').value || '';
-            const wmLayering = document.getElementById('watermarkLayering').value || 'top';
 
             const wmExcludePages = parsePageRange(wmExcludeStr, pages.length);
             const wmTargetPages = watermarkImage 
@@ -982,6 +993,63 @@
                 reader.readAsArrayBuffer(blob);
             }, 'image/png');
         });
+    }
+
+    function makePageBackgroundTransparent(page, pdfDoc) {
+        try {
+            const contents = page.node.Contents();
+            if (!contents) return;
+
+            const processStream = (stream) => {
+                let resolvedStream = stream;
+                if (stream && stream.constructor && stream.constructor.name === 'PDFRef') {
+                    resolvedStream = pdfDoc.context.lookup(stream);
+                }
+                
+                if (!resolvedStream || !resolvedStream.contents) return;
+                const compressedBytes = resolvedStream.contents;
+                if (compressedBytes.length === 0) return;
+                
+                let decompressed;
+                let isRaw = false;
+                try {
+                    decompressed = pako.ungzip(compressedBytes);
+                } catch (e) {
+                    try {
+                        decompressed = pako.inflate(compressedBytes);
+                    } catch (err) {
+                        try {
+                            decompressed = pako.inflateRaw(compressedBytes);
+                            isRaw = true;
+                        } catch (err2) {
+                            console.error("Pako decompress failed:", err2);
+                            return;
+                        }
+                    }
+                }
+
+                const decompressedText = new TextDecoder().decode(decompressed);
+                
+                // Match the white background rectangle pattern
+                const pattern = /((?:1\s+1\s+1\s+RG\s+1\s+1\s+1\s+rg|1\s+g\s+1\s+G)[\s\S]*?\d+\s+\d+\s+\d+\s+\d+\s+re\s*\n\s*)(f|f\*|B|B\*)/i;
+                
+                if (pattern.test(decompressedText)) {
+                    const modifiedText = decompressedText.replace(pattern, '$1n');
+                    const recompressed = isRaw 
+                        ? pako.deflateRaw(new TextEncoder().encode(modifiedText))
+                        : pako.deflate(new TextEncoder().encode(modifiedText));
+                    resolvedStream.contents = recompressed;
+                }
+            };
+
+            if (Array.isArray(contents)) {
+                contents.forEach(processStream);
+            } else {
+                processStream(contents);
+            }
+        } catch (err) {
+            console.error("Failed to strip background transparency:", err);
+        }
     }
 
     // =====================================================================
