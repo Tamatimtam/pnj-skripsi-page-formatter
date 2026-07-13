@@ -1030,8 +1030,8 @@
 
                 const decompressedText = new TextDecoder().decode(decompressed);
                 
-                // Match the white background rectangle pattern
-                const pattern = /((?:1\s+1\s+1\s+RG\s+1\s+1\s+1\s+rg|1\s+g\s+1\s+G)[\s\S]*?\d+\s+\d+\s+\d+\s+\d+\s+re\s*\n\s*)(f|f\*|B|B\*)/i;
+                // Match the white background rectangle pattern (only page-wide rectangles > 400 pt)
+                const pattern = /((?:1\s+1\s+1\s+RG\s+1\s+1\s+1\s+rg|1\s+g\s+1\s+G|1\s+1\s+1\s+rg|1\s+g|1\s+G)?[\s\S]*?\b0(?:\.0+)?\s+0(?:\.0+)?\s+(?:[4-9]\d{2}|\d{4,})(?:\.\d+)?\s+(?:[4-9]\d{2}|\d{4,})(?:\.\d+)?\s+re\s*)(f\*|f|B\*|B)/i;
                 
                 if (pattern.test(decompressedText)) {
                     const modifiedText = decompressedText.replace(pattern, '$1n');
